@@ -2,73 +2,48 @@
 
 ## Directory Overview
 
-This directory is a personal travel planner for organizing a round-the-world trip. It uses Markdown files to document and track all aspects of the journey.
+This directory is a personal travel planner for organizing a round-the-world trip. It uses Markdown files and an integrated AI Agent framework to document and track all aspects of the journey.
+
+* **`.agent/`**: 存放 AI 智能规划助手的核心逻辑。
+  * `skills/`: 专业领域的 AI 技能（如签证、美食、交通专家等）。
+  * `workflows/`: 自动化执行流（如 `/auto-plan`, `/init-destination`）。
+* **`global_plan/`**: 存放整个旅行的宏观计划和通用准备清单。
+* **`destinations/`**: 存放每个具体目的地的详细旅行计划。
+* **`README.md`**: 项目主入口，包含导航、进度总览及 AI 助手使用说明。
+* **`GEMINI.md`**: 本文档，详述项目架构与规划流程规范。
 
 ## Planning Process & Status Management
 
-A structured workflow is used to develop the plan for each destination. The status of each document is tracked within the file itself.
-
 ### Status Tracking
 
-Each file within a destination directory (e.g., `destinations/Japan/`) must begin with a status line to track its progress. The available statuses are:
-*   `**状态**: 草稿` (Draft): The file has been created but planning has not seriously begun.
-*   `**状态**: 编制中` (In Progress): The file is actively being researched and written.
-*   `**状态**: 已完成` (Completed): The file's planning is considered complete for the current stage.
+每个目的地目录下的文件必须以状态行开头，以跟踪其进度：
 
-### Planning Workflow
+* `**状态**: 草稿` (Draft): 文件已创建，但尚未开始详细调研。
+* `**状态**: 编制中` (In Progress): AI 专家正在进行深度调研或编写。
+* `**状态**: 已完成` (Completed): 该阶段规划已完成，并经过交叉校验。
 
-The planning for each destination follows an 8-step process, which corresponds to the files in the destination's directory.
+### Planning Workflow (SOP)
 
-1.  **Step 1: Preliminary Research**: Handle administrative prep work.
-    *   `0_visa_legal.md`: Research visa requirements.
-    *   `0_financial_services.md`: Look into local currency, banking, and payment methods.
-    *   `0_communications.md`: Check out SIM cards and local communication options.
-2.  **Step 2: Transportation Research**: Research international and local transportation methods.
-    *   `2_international_transportation.md`: Research international round-trip transportation methods.
-    
-3.  **Step 3: Exploration Research**: List all potential points of interest.
-    *   `1_attractions.md`: List sights, museums, parks, etc.
-    *   `1_lodging_food.md`: Research notable restaurants, local delicacies, and potential lodging options.
-    *   `1_local_transportation.md`: Research local transport options within the destination.
-4.  **Step 4: Provider Research**: Find companies that will be used.
-    *   `3_projects_providers.md`: List potential tour operators, rental agencies, etc.
-5.  **Step 5: Note Compilation**: Consolidate important tips and warnings.
-    *   `4_notes.md`: Write down miscellaneous notes, cultural etiquette, and things to watch out for.
-6.  **Step 6: Itinerary Formulation**: Create a day-by-day schedule.
-    *   `5_itinerary.md`: Build the actual itinerary.
-7.  **Step 7: Budgeting**: Estimate all costs.
-    *   `6_budget.md`: Create a detailed budget based on the itinerary and other research.
-8.  **Step 8: Country-level Summary**: Update the destination's main `README`.
-    *   `README.md`: Write a high-level summary of the plan for the country.
-9.  **Step 9: Continent-level Summary**: After all countries in a region are planned, update the main overview document.
-    *   `global_plan/*_trip_overview.md`: Update the main trip overview with final dates and summaries.
+目的地的规划遵循 9 步标准作业程序 (SOP)，由专一领域专家协作完成：
 
-## File Structure
+1. **Step 1: Essentials (基础调研)**: `0_visa_legal.md`, `0_financial_services.md`, `0_communications.md`。
+2. **Step 2: Business & Market Study (商业调研)**: `1_business_inspection.md`。研究目的地经济、消费习惯与行业动态。
+3. **Step 3: Knowledge Base (知识库构建)**: `1_attractions.md`, `1_lodging_food.md`。收集景点、特色体验及美食信息。
+4. **Step 4: Logistics & Transport (物流与交通)**: `2_international_transportation.md`, `1_local_transportation.md`。
+5. **Step 5: Provider Verification (供应商研判)**: `3_projects_providers.md`。确认预订官网、联系方式及信用度。
+6. **Step 6: Synthesis & Synthesis (综合策划)**: `4_notes.md` (文化/安全策略)。
+7. **Step 7: Itinerary Formulation (行程编排)**: `5_itinerary.md`。基于地理聚类逻辑设计每日日程。
+8. **Step 8: Budgeting (财务预算)**: `6_budget.md`。基于供应商真实价格进行三波段核算。
+9. **Step 9: Delivery (交付与归档)**: 更新 `README.md` 并导出 PDF。
 
-The project is organized into two main sections:
+## AI 智能规划框架
 
-*   **`global_plan/`**: Contains master plans for the entire trip, broken down by region.
-*   **`destinations/`**: Holds detailed plans for each destination. Based on the workflow, a standardized structure for each destination (e.g., `destinations/Japan/`) is as follows:
-    *   `README.md`: (Step 7) An overview of the destination.
-    *   `0_visa_legal.md`: (Step 1) Destination-specific visa and legal information.
-    *   `0_financial_services.md`: (Step 1) Details on money and banking.
-    *   `0_communications.md`: (Step 1) Details on local telecoms.
+项目通过 `.agent/skills` 下的专家矩阵实现从调研到交付的全流程自动化：
 
-    *   `1_attractions.md`: (Step 2) Notes on sights and activities.
-    *   `1_lodging_food.md`: (Step 2) Plans for accommodation and dining.
-    *   `1_local_transportation.md`: (Implicit in Step 5) Information on flights, local transport, etc.
-    
-    *   `3_projects_providers.md`: (Step 3) Information on service providers (tours, rentals). **(New)**
-
-    *   `4_notes.md`: (Step 4) Miscellaneous notes and tips.
-    
-    *   `5_itinerary.md`: (Step 5) A detailed day-by-day itinerary.
-
-    *   `6_budget.md`: (Step 6) A specific budget for that destination.
-
-
-*   **`README.md`**: The main project README, written in Chinese, explaining the structure and also containing high-level overviews of the trip.
+* **Travel Orchestrator (中控台)**: 负责全局调度逻辑。
+* **Specialized Agents**: 包含 `visa-consultant`, `logistics-expert`, `foodie-expert`, `attractions-expert`, `experience-expert`, `business-inspection`, `itinerary-architect`, `budget-wizard` 等。
+* **Command Flow**: 使用 `/auto-plan [地点] [天数]` 触发完整规划闭环。
 
 ## Usage
 
-This directory is a living document. The user will populate and update the Markdown files as they plan and execute their world trip, following the workflow outlined above.
+本项目不仅是一个文档库，更是一个基于 Agent Skills 的自动化系统。用户通过调用特定工作流（Workflows），驱动多名 AI 专家通过实时搜索和地图校验，生成具有实操意义的专业旅行计划。
