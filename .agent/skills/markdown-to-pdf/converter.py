@@ -36,7 +36,8 @@ DEFAULT_INPUT = "/Users/originrock/dev/MagicBox_19/.claude/skills/markdown-to-pd
 DEFAULT_OUTPUT = "/Users/originrock/dev/MagicBox_19/.claude/skills/markdown-to-pdf/test_document.pdf"  # 示例: "output.pdf" 或 "output_dir"
 DEFAULT_STYLE = 'odoo_doc'
 DEFAULT_LANDSCAPE = False  # 是否默认横版 (True 为横版, False 为竖版)
-DEFAULT_HEADER = ""  # 留空则从文件名自动生成，如 "My Project Documentation"
+DEFAULT_HEADER_LEFT = "World_Travel"
+DEFAULT_HEADER_RIGHT = "https://github.com/originrock/WorldTravel"
 
 # ==========================================
 
@@ -309,13 +310,30 @@ class ThemeManager:
     def __init__(self, style_dir: Path):
         self.style_dir = style_dir
 
-    def get_full_html(self, body_content: str, title: str, theme_name: str = 'default', landscape: bool = False, header_text: str = "") -> str:
+    def get_full_html(self, body_content: str, title: str, theme_name: str = 'default', landscape: bool = False, header_left: str = "") -> str:
         css_path = self.style_dir / f"{theme_name}.css"
         css_content = css_path.read_text(encoding='utf-8') if css_path.exists() else ""
         
-        # Dynamic header injection - override CSS @page @top-right content
-        header_display = header_text or title
-        header_css = f"""@page {{ @top-right {{ content: \"{header_display}\"; }} }}"""
+        # Header configuration
+        final_header_left = header_left or DEFAULT_HEADER_LEFT
+        final_header_right = DEFAULT_HEADER_RIGHT
+        
+        # Dynamic header injection - WeasyPrint @page selectors
+        header_css = f"""
+        @page {{ 
+            @top-left {{ 
+                content: "{final_header_left}"; 
+                font-family: sans-serif;
+                font-size: 9pt;
+                color: #555;
+            }} 
+            @top-right {{ 
+                content: "{final_header_right}"; 
+                font-family: sans-serif;
+                font-size: 8pt;
+                color: #888;
+            }}
+        }}"""
         
         # Orientation CSS override
         orientation_css = "@page { size: A4 landscape !important; }" if landscape else ""
@@ -516,7 +534,14 @@ class Processor:
         
         # 3. Wrap with Theme
         title = input_path.stem.replace('_', ' ').title()
-        full_html = self.themes.get_full_html(html_body, output_path.stem.title(), theme, kwargs.get('landscape', False))
+        header_left = kwargs.get('header_left', "")
+        full_html = self.themes.get_full_html(
+            html_body, 
+            output_path.stem.title(), 
+            theme, 
+            kwargs.get('landscape', False),
+            header_left=header_left
+        )
         
         # 4. Generate PDF
         self.engine.generate(full_html, output_path)
@@ -545,7 +570,7 @@ class Processor:
             # Add section break and page break
             combined_body.append(f'<section id="part-{i}" style="page-break-after: always;">{html_body}</section>')
         
-        full_html = self.themes.get_full_html("\n".join(combined_body), "Merged Document", theme)
+        full_html = self.themes.get_full_html("\n".join(combined_body), "Merged Document", theme, header_left=kwargs.get('header_left', ""))
         self.engine.generate(full_html, output_path)
         print(f"Merged PDF created: {output_path}")
 
@@ -557,6 +582,7 @@ def main():
     parser.add_argument('--batch', action='store_true', help='Batch process directory')
     parser.add_argument('--merge', action='store_true', help='Merge multiple files')
     parser.add_argument('--landscape', action='store_true', help='Use landscape orientation')
+    parser.add_argument('--header-left', help=f'Text for the top-left header (default: {DEFAULT_HEADER_LEFT})')
     
     args = parser.parse_args()
     
@@ -576,11 +602,11 @@ def main():
     
     if args.merge:
         inputs = [Path(p) for p in final_input]
-        processor.merge(inputs, Path(final_output), final_style, landscape=final_landscape)
+        processor.merge(inputs, Path(final_output), final_style, landscape=final_landscape, header_left=args.header_left)
     elif args.batch:
-        processor.batch(Path(final_input[0]), Path(final_output), theme=final_style, landscape=final_landscape)
+        processor.batch(Path(final_input[0]), Path(final_output), theme=final_style, landscape=final_landscape, header_left=args.header_left)
     else:
-        processor.process(Path(final_input[0]), Path(final_output), final_style, landscape=final_landscape)
+        processor.process(Path(final_input[0]), Path(final_output), final_style, landscape=final_landscape, header_left=args.header_left)
 
 if __name__ == "__main__":
     main()

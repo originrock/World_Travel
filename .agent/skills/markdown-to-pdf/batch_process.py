@@ -16,6 +16,7 @@ from converter import Processor, DEFAULT_STYLE, DEFAULT_LANDSCAPE  # noqa: E402
 
 DEFAULT_INPUT_DIR = "/Users/originrock/dev/World_Travel/destinations/Australia"
 DEFAULT_OUTPUT_DIR = "/Users/originrock/dev/World_Travel/destinations/Australia"
+DEFAULT_INTERMEDIATE_DIR = None  # User can set this in the script
 DEFAULT_PATTERN = "*.md"
 DEFAULT_RECURSIVE = True
 
@@ -60,11 +61,29 @@ def main() -> None:
         action="store_true",
         help="Disable recursive search",
     )
+    parser.add_argument(
+        "--intermediate-dir",
+        "--output-dir",
+        dest="intermediate_dir",
+        help="Directory to save generated PDFs (Overrides DEFAULT_INTERMEDIATE_DIR)",
+    )
+    parser.add_argument(
+        "--header-left",
+        help="Text for the top-left header",
+    )
 
     args = parser.parse_args()
 
     final_input_dir = Path(args.input or DEFAULT_INPUT_DIR)
-    final_output_dir = Path(args.output or DEFAULT_OUTPUT_DIR)
+    
+    # Resolve intermediate/output directory
+    # Priority: CLI -> Script Default -> Output Arg
+    intermediate_path = args.intermediate_dir or DEFAULT_INTERMEDIATE_DIR
+    if intermediate_path:
+        final_output_dir = Path(intermediate_path)
+    else:
+        final_output_dir = Path(args.output or DEFAULT_OUTPUT_DIR)
+
     final_style = args.style or DEFAULT_STYLE
     final_pattern = args.pattern or DEFAULT_PATTERN
     final_landscape = args.landscape or DEFAULT_LANDSCAPE
@@ -87,7 +106,7 @@ def main() -> None:
         out_path = final_output_dir / rel_path.with_suffix(".pdf")
         out_path.parent.mkdir(parents=True, exist_ok=True)
         try:
-            processor.process(md_path, out_path, theme=final_style, landscape=final_landscape)
+            processor.process(md_path, out_path, theme=final_style, landscape=final_landscape, header_left=args.header_left)
         except Exception as exc:
             errors += 1
             print(f"[ERROR] Failed to convert {md_path}: {exc}")

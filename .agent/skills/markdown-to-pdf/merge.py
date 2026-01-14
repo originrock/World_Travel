@@ -10,11 +10,17 @@ from typing import List, Optional, Tuple
 
 SKILL_DIR = Path(__file__).resolve().parent
 
-DEFAULT_INPUT_DIR = "/Users/originrock/dev/World_Travel/destinations/Australia"
-DEFAULT_OUTPUT = "/Users/originrock/dev/World_Travel/destinations/Australia"
+
+DEFAULT_INPUT_DIR = "/Users/originrock/dev/World_Travel/pdf"
+DEFAULT_OUTPUT = "/Users/originrock/dev/World_Travel/pdf"
+DEFAULT_OUTPUT_NAME = "Oceania_Trip_Plan.pdf"
 DEFAULT_PATTERN = "*.pdf"
+
+DEFAULT_SORT_ORDER = "desc"  # Default to descending order     choices=["asc", "desc"],
+
 DEFAULT_RECURSIVE = True
-DEFAULT_OUTPUT_NAME = "merged.pdf"
+
+
 
 
 def select_backend() -> Tuple[Optional[str], Optional[object]]:
@@ -37,12 +43,14 @@ def select_backend() -> Tuple[Optional[str], Optional[object]]:
         return None, None
 
 
-def collect_pdf_files(input_dir: Path, pattern: str, recursive: bool) -> List[Path]:
+def collect_pdf_files(input_dir: Path, pattern: str, recursive: bool, sort_order: str = "desc") -> List[Path]:
     if recursive:
         candidates = input_dir.rglob(pattern)
     else:
         candidates = input_dir.glob(pattern)
-    return sorted([p for p in candidates if p.is_file()])
+    
+    is_reverse = (sort_order.lower() == "desc")
+    return sorted([p for p in candidates if p.is_file()], reverse=is_reverse)
 
 
 def resolve_output_path(output_arg: Optional[str]) -> Path:
@@ -94,12 +102,22 @@ def main() -> None:
         action="store_true",
         help="Disable recursive search",
     )
+    parser.add_argument(
+        "--sort-order",
+        choices=["asc", "desc"],
+        help=f"Sort order for merging (default in script: {DEFAULT_SORT_ORDER})",
+    )
+    parser.add_argument(
+        "--header-left",
+        help="Text for the top-left header",
+    )
 
     args = parser.parse_args()
 
     final_input_dir = Path(args.input or DEFAULT_INPUT_DIR)
     final_pattern = args.pattern or DEFAULT_PATTERN
     final_recursive = DEFAULT_RECURSIVE and not args.no_recursive
+    final_sort_order = args.sort_order or DEFAULT_SORT_ORDER
     final_output_path = resolve_output_path(args.output)
 
     if not final_input_dir.exists() or not final_input_dir.is_dir():
@@ -110,7 +128,7 @@ def main() -> None:
         print("No PDF merge backend available. Install pikepdf or pypdf/PyPDF2.")
         sys.exit(1)
 
-    pdf_files = collect_pdf_files(final_input_dir, final_pattern, final_recursive)
+    pdf_files = collect_pdf_files(final_input_dir, final_pattern, final_recursive, final_sort_order)
     output_resolved = final_output_path.resolve()
     pdf_files = [p for p in pdf_files if p.resolve() != output_resolved]
 
